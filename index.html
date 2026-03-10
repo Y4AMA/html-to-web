@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VercelDeploy - Upload & Deploy HTML ke Vercel</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .animated-bg span {
+            position: absolute;
+            display: block;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 25s linear infinite;
+            bottom: -150px;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+                border-radius: 0;
+            }
+            100% {
+                transform: translateY(-1000px) rotate(720deg);
+                opacity: 0;
+                border-radius: 50%;
+            }
+        }
+
+        /* Navbar */
+        .navbar {
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #fff;
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-btn:hover {
+            background: white;
+            color: #667eea;
+            border-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn-primary {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 5% 50px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin: 3rem 0 4rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease;
+            animation-fill-mode: both;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        /* Main Upload Card */
+        .upload-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 3rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            margin: 3rem 0;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        .upload-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .upload-header i {
+            font-size: 2rem;
+            color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .upload-header h2 {
+            color: #333;
+            font-size: 2rem;
+        }
+
+        .upload-header p {
+            color: #666;
+            margin-left: auto;
+        }
+
+        /* Token Input */
+        .token-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .token-label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .token-input-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .token-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'monospace';
+        }
+
+        .token-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .show-token {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 0 1.5rem;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .show-token:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* File Upload Area */
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 30px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8fafc;
+            margin-bottom: 2rem;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f0 100%);
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-area p {
+            color: #666;
+        }
+
+        .file-types {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .file-type {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* File List */
+        .file-list {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .file-size {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .file-remove {
+            color: #f56565;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-remove:hover {
+            transform: scale(1.2);
+        }
+
+        /* Deploy Options */
+        .deploy-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .deploy-option {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .deploy-option:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .deploy-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f0 100%);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-icon {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .option-title {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .option-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Deploy Button */
+        .deploy-btn {
+            width: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .deploy-btn:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .deploy-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .deploy-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .deploy-btn:hover i {
+            transform: translateX(10px);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Result Card */
+        .result-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-header i {
+            font-size: 2rem;
+            color: #48bb78;
+        }
+
+        .result-header h3 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .deploy-url {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .url-text {
+            color: #667eea;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            color: #333;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            border-left: 4px solid #48bb78;
+        }
+
+        .toast.error {
+            border-left-color: #f56565;
+        }
+
+        .toast i {
+            font-size: 1.5rem;
+        }
+
+        .toast.success i {
+            color: #48bb78;
+        }
+
+        .toast.error i {
+            color: #f56565;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 30px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            animation: modalPop 0.3s ease;
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 2rem;
+        }
+
+        .modal-body {
+            margin-bottom: 2rem;
+        }
+
+        .token-display {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .token-code {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #667eea;
+            letter-spacing: 5px;
+            font-family: monospace;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal-btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border-radius: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: #667eea;
+            font-size: 1.8rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 0;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-icons a {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .upload-card {
+                padding: 1.5rem;
+            }
+
+            .token-input-group {
+                flex-direction: column;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .modal-content {
+                padding: 2rem;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg" id="animatedBg"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>VercelDeploy</span>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="showTokenModal()">
+                <i class="fas fa-key"></i> Token
+            </button>
+            <button class="nav-btn nav-btn-primary" onclick="showGuide()">
+                <i class="fas fa-book"></i> Guide
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>Deploy HTML ke Vercel</h1>
+            <p>Upload file HTML Anda dan deploy langsung ke Vercel dengan mudah menggunakan token</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-number" id="totalDeploys">1,234</div>
+                <div class="stat-label">Total Deploys</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-number" id="activeSites">856</div>
+                <div class="stat-label">Active Sites</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🌐</div>
+                <div class="stat-number" id="countries">45</div>
+                <div class="stat-label">Countries</div>
+            </div>
+        </div>
+
+        <!-- Main Upload Card -->
+        <div class="upload-card">
+            <div class="upload-header">
+                <i class="fas fa-rocket"></i>
+                <h2>Upload & Deploy</h2>
+                <p><i class="fas fa-shield-alt"></i> Secure & Fast</p>
+            </div>
+
+            <!-- Token Input Section -->
+            <div class="token-section">
+                <label class="token-label">
+                    <i class="fas fa-key"></i> Vercel Token
+                </label>
+                <div class="token-input-group">
+                    <input type="password" class="token-input" id="vercelToken" 
+                           placeholder="Masukkan Vercel Token Anda" value="">
+                    <button class="show-token" onclick="toggleTokenVisibility()">
+                        <i class="fas fa-eye"></i> Show
+                    </button>
+                    <button class="show-token" onclick="generateToken()">
+                        <i class="fas fa-magic"></i> Generate
+                    </button>
+                </div>
+                <small style="color: #666; margin-top: 0.5rem; display: block;">
+                    <i class="fas fa-info-circle"></i> Token digunakan untuk autentikasi ke Vercel API
+                </small>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" multiple accept=".html,.htm,.css,.js,.json,.png,.jpg,.jpeg,.svg" style="display: none;">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3>Drag & Drop files here</h3>
+                <p>or click to browse</p>
+                <div class="file-types">
+                    <span class="file-type">HTML</span>
+                    <span class="file-type">CSS</span>
+                    <span class="file-type">JS</span>
+                    <span class="file-type">Images</span>
+                </div>
+            </div>
+
+            <!-- File List -->
+            <div class="file-list" id="fileList" style="display: none;"></div>
+
+            <!-- Deploy Options -->
+            <div class="deploy-options">
+                <div class="deploy-option selected" onclick="selectOption(this, 'simple')">
+                    <div class="option-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="option-title">Simple Deploy</div>
+                    <div class="option-desc">Deploy single HTML file</div>
+                </div>
+                <div class="deploy-option" onclick="selectOption(this, 'project')">
+                    <div class="option-icon"><i class="fas fa-folder-open"></i></div>
+                    <div class="option-title">Full Project</div>
+                    <div class="option-desc">Deploy multiple files</div>
+                </div>
+                <div class="deploy-option" onclick="selectOption(this, 'static')">
+                    <div class="option-icon"><i class="fas fa-image"></i></div>
+                    <div class="option-title">Static Site</div>
+                    <div class="option-desc">With assets & resources</div>
+                </div>
+            </div>
+
+            <!-- Deploy Button -->
+            <button class="deploy-btn" id="deployBtn" onclick="startDeploy()" disabled>
+                <i class="fas fa-rocket"></i>
+                <span>Deploy to Vercel</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <!-- Progress Bar -->
+            <div class="progress-container" id="progressContainer" style="display: none;">
+                <div class="progress-header">
+                    <span>Deploying...</span>
+                    <span id="progressPercentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+                <div style="text-align: center; margin-top: 1rem; color: #666;" id="progressStatus">
+                    Preparing files...
+                </div>
+            </div>
+
+            <!-- Result Card -->
+            <div class="result-card" id="resultCard" style="display: none;">
+                <div class="result-header">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Deployment Successful!</h3>
+                </div>
+                <div class="deploy-url">
+                    <span class="url-text" id="deployedUrl">https://your-site.vercel.app</span>
+                    <button class="copy-btn" onclick="copyUrl()">
+                        <i class="fas fa-copy"></i> Copy URL
+                    </button>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center;">
+                    <button class="nav-btn" style="background: #667eea; color: white; border: none;" onclick="window.open(document.getElementById('deployedUrl').textContent)">
+                        <i class="fas fa-external-link-alt"></i> Visit Site
+                    </button>
+                    <button class="nav-btn" style="background: #48bb78; color: white; border: none;" onclick="resetForm()">
+                        <i class="fas fa-redo"></i> Deploy Another
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <h3>Instant Deploy</h3>
+                <p>Deploy your HTML files in seconds with our optimized pipeline</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Secure Token</h3>
+                <p>Your Vercel token is encrypted and never stored</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-globe"></i></div>
+                <h3>Global CDN</h3>
+                <p>Your site is served from Vercel's global edge network</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Analytics</h3>
+                <p>Built-in analytics and monitoring for your deployments</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#">About</a>
+            <a href="#">Features</a>
+            <a href="#">Pricing</a>
+            <a href="#">API</a>
+            <a href="#">Support</a>
+        </div>
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-github"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-discord"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+        <div class="copyright">
+            <i class="far fa-copyright"></i> 2024 VercelDeploy. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Token Modal -->
+    <div class="modal" id="tokenModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-key"></i>
+                <h2>Vercel Token</h2>
+            </div>
+            <div class="modal-body">
+                <p style="color: #666; margin-bottom: 1rem;">Dapatkan token Vercel Anda dengan langkah berikut:</p>
+                <ol style="color: #4a5568; margin-left: 1.5rem;">
+                    <li>Buka <a href="https://vercel.com" target="_blank">Vercel.com</a> dan login</li>
+                    <li>Go to Settings → Tokens</li>
+                    <li>Create a new token</li>
+                    <li>Copy dan paste di sini</li>
+                </ol>
+                <div class="token-display">
+                    <p style="color: #666; margin-bottom: 0.5rem;">Contoh Token:</p>
+                    <code class="token-code">xxxxxxxxxxxxxx</code>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="hideTokenModal()">
+                    <i class="fas fa-check"></i> Got it
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div class="modal" id="guideModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-book"></i>
+                <h2>Quick Guide</h2>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="width: 30px; height: 30px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">1</div>
+                        <div style="color: #4a5568;">Masukkan Vercel Token Anda</div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="width: 30px; height: 30px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">2</div>
+                        <div style="color: #4a5568;">Upload file HTML yang ingin di-deploy</div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="width: 30px; height: 30px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">3</div>
+                        <div style="color: #4a5568;">Pilih opsi deployment</div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="width: 30px; height: 30px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">4</div>
+                        <div style="color: #4a5568;">Klik "Deploy to Vercel"</div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="width: 30px; height: 30px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">5</div>
+                        <div style="color: #4a5568;">Dapatkan URL website Anda!</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="hideGuideModal()">
+                    <i class="fas fa-check"></i> Start Deploying
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        let selectedFiles = [];
+        let deployOption = 'simple';
+        let isDeploying = false;
+        let vercelToken = '';
+
+        // Initialize animated background
+        function createBackground() {
+            const bg = document.getElementById('animatedBg');
+            for (let i = 0; i < 50; i++) {
+                const span = document.createElement('span');
+                const size = Math.random() * 50 + 10;
+                span.style.width = size + 'px';
+                span.style.height = size + 'px';
+                span.style.left = Math.random() * 100 + '%';
+                span.style.animationDuration = Math.random() * 20 + 10 + 's';
+                span.style.animationDelay = Math.random() * 5 + 's';
+                bg.appendChild(span);
+            }
+        }
+
+        // Token functions
+        function toggleTokenVisibility() {
+            const input = document.getElementById('vercelToken');
+            const btn = document.querySelector('.show-token');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<i class="fas fa-eye"></i> Show';
+            }
+        }
+
+        function generateToken() {
+            const token = 'vercel_' + Math.random().toString(36).substring(2, 15) + 
+                         Math.random().toString(36).substring(2, 15);
+            document.getElementById('vercelToken').value = token;
+            checkDeployButton();
+            showToast('Token generated! Copy this token for deployment', 'success');
+        }
+
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            addFiles(files);
+        }
+
+        // Drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            addFiles(files);
+        });
+
+        function addFiles(files) {
+            const htmlFiles = files.filter(file => 
+                file.name.endsWith('.html') || 
+                file.name.endsWith('.htm') ||
+                file.name.endsWith('.css') ||
+                file.name.endsWith('.js')
+            );
+
+            if (htmlFiles.length === 0 && files.length > 0) {
+                showToast('Please upload HTML files!', 'error');
+                return;
+            }
+
+            selectedFiles = [...selectedFiles, ...htmlFiles];
+            updateFileList();
+            checkDeployButton();
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            const uploadArea = document.getElementById('uploadArea');
+
+            if (selectedFiles.length > 0) {
+                fileList.style.display = 'block';
+                uploadArea.style.display = 'none';
+                
+                let html = '';
+                selectedFiles.forEach((file, index) => {
+                    const size = (file.size / 1024).toFixed(2);
+                    html += `
+                        <div class="file-item">
+                            <div class="file-icon"><i class="fas fa-code"></i></div>
+                            <div class="file-info">
+                                <div class="file-name">${file.name}</div>
+                                <div class="file-size">${size} KB</div>
+                            </div>
+                            <div class="file-remove" onclick="removeFile(${index})">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+                fileList.innerHTML = html;
+            } else {
+                fileList.style.display = 'none';
+                uploadArea.style.display = 'block';
+            }
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            checkDeployButton();
+        }
+
+        // Deploy options
+        function selectOption(element, option) {
+            document.querySelectorAll('.deploy-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            deployOption = option;
+        }
+
+        // Check deploy button
+        function checkDeployButton() {
+            const token = document.getElementById('vercelToken').value;
+            const deployBtn = document.getElementById('deployBtn');
+            
+            if (token && selectedFiles.length > 0 && !isDeploying) {
+                deployBtn.disabled = false;
+            } else {
+                deployBtn.disabled = true;
+            }
+        }
+
+        // Token input listener
+        document.getElementById('vercelToken').addEventListener('input', checkDeployButton);
+
+        // Deploy function
+        async function startDeploy() {
+            if (isDeploying) return;
+
+            isDeploying = true;
+            document.getElementById('deployBtn').disabled = true;
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('resultCard').style.display = 'none';
+
+            // Simulate deployment progress
+            const progressFill = document.getElementById('progressFill');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressStatus = document.getElementById('progressStatus');
+
+            const steps = [
+                { percent: 10, status: 'Validating files...' },
+                { percent: 25, status: 'Checking token...' },
+                { percent: 40, status: 'Preparing build...' },
+                { percent: 60, status: 'Uploading to Vercel...' },
+                { percent: 80, status: 'Building project...' },
+                { percent: 95, status: 'Deploying to edge...' }
+            ];
+
+            for (const step of steps) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+                progressFill.style.width = step.percent + '%';
+                progressPercentage.textContent = step.percent + '%';
+                progressStatus.textContent = step.status;
+            }
+
+            // Complete
+            await new Promise(resolve => setTimeout(resolve, 500));
+            progressFill.style.width = '100%';
+            progressPercentage.textContent = '100%';
+            progressStatus.textContent = 'Deployment complete!';
+
+            // Show result
+            setTimeout(() => {
+                document.getElementById('progressContainer').style.display = 'none';
+                document.getElementById('resultCard').style.display = 'block';
+                
+                // Generate random subdomain
+                const randomName = Math.random().toString(36).substring(2, 8);
+                const url = `https://${randomName}-site.vercel.app`;
+                document.getElementById('deployedUrl').textContent = url;
+                
+                showToast('Deployment successful! 🚀', 'success');
+                
+                // Update stats
+                document.getElementById('totalDeploys').textContent = 
+                    (parseInt(document.getElementById('totalDeploys').textContent.replace(',', '')) + 1).toLocaleString();
+                
+                isDeploying = false;
+            }, 500);
+        }
+
+        // Copy URL
+        function copyUrl() {
+            const url = document.getElementById('deployedUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('URL copied to clipboard!', 'success');
+            });
+        }
+
+        // Reset form
+        function resetForm() {
+            selectedFiles = [];
+            document.getElementById('vercelToken').value = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('fileList').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+            document.getElementById('deployBtn').disabled = true;
+            isDeploying = false;
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Modal functions
+        function showTokenModal() {
+            document.getElementById('tokenModal').classList.add('show');
+        }
+
+        function hideTokenModal() {
+            document.getElementById('tokenModal').classList.remove('show');
+        }
+
+        function showGuide() {
+            document.getElementById('guideModal').classList.add('show');
+        }
+
+        function hideGuideModal() {
+            document.getElementById('guideModal').classList.remove('show');
+        }
+
+        // Close modals on click outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        }
+
+        // Initialize
+        window.onload = function() {
+            createBackground();
+            
+            // Set random initial stats
+            document.getElementById('totalDeploys').textContent = 
+                Math.floor(Math.random() * 5000 + 1000).toLocaleString();
+            document.getElementById('activeSites').textContent = 
+                Math.floor(Math.random() * 1000 + 500).toLocaleString();
+            document.getElementById('countries').textContent = 
+                Math.floor(Math.random() * 30 + 30);
+        };
+    </script>
+</body>
+</html>
